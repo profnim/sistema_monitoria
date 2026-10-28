@@ -79,19 +79,23 @@ WSGI_APPLICATION = 'sistema_monitoria.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuração de Banco de Dados Robusta para Produção e Desenvolvimento
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
-    )
-}
-
-# Garante que se a variável de ambiente DATABASE_URL existir no Render, ela sobrescreve corretamente
-db_url = os.environ.get('DATABASE_URL')
-if db_url:
-    DATABASES['default'] = dj_database_url.parse(db_url, conn_max_age=600)
-
+# Configuração de Banco de Dados à prova de falhas para Produção e Desenvolvimento
+if os.environ.get('DATABASE_URL'):
+    # Se estiver no Render, usa a PostgreSQL configurada na variável de ambiente
+    DATABASES = {
+        'default': dj_database_url.parse(
+            os.environ.get('DATABASE_URL'),
+            conn_max_age=600
+        )
+    }
+else:
+    # Se estiver no seu computador local, usa o SQLite nativo
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 
