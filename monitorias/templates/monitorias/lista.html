@@ -1,0 +1,70 @@
+{% extends 'monitorias/base.html' %}
+
+{% block content %}
+<!-- Barra de Pesquisa -->
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-10">
+        <input type="text" name="q" class="form-control" placeholder="Pesquisar por disciplina ou assunto (ex: Matemática, Python...)" value="{{ busca }}">
+    </div>
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </div>
+</form>
+
+{% if busca %}
+    <div class="mb-3">
+        <p class="text-muted">Mostrando resultados para: <strong>"{{ busca }}"</strong> 
+            <a href="{% url 'lista_monitorias' %}" class="btn btn-sm btn-outline-secondary ms-2">Limpar busca</a>
+        </p>
+    </div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">Monitorias Disponíveis</h2>
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Disciplina</th>
+                            <th>Assunto</th>
+                            <th>Monitor</th>
+                            <th>Data e Horário</th>
+                            <th>Local</th>
+                            <th>Vagas</th>
+                            <th class="text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in monitorias %}
+                        <tr>
+                            <td><strong>{{ m.disciplina }}</strong></td>
+                            <td>{{ m.assunto }}</td>
+                            <td>{{ m.monitor.get_full_name|default:m.monitor.username }}</td>
+                            <td>{{ m.data|date:"d/m/Y" }} às {{ m.horario_inicio|time:"H:i" }}</td>
+                            <td>{{ m.local }}</td>
+                            <td>{{ m.vagas_disponiveis }} / {{ m.vagas_limite }}</td>
+                            <td class="text-center">
+                                {% if m.id in inscricoes_usuario %}
+                                    <a href="{% url 'cancelar_inscricao' m.id %}" class="btn btn-outline-danger btn-sm">Cancelar Inscrição</a>
+                                {% elif m.vagas_disponiveis > 0 %}
+                                    <a href="{% url 'inscrever_monitoria' m.id %}" class="btn btn-primary btn-sm">Inscrever-se</a>
+                                {% else %}
+                                    <span class="badge bg-secondary">Esgotado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Nenhuma monitoria cadastrada no momento.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'monitorias/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Lista de Presença: {{ monitoria.disciplina }}</h2>
+            <a href="{% url 'painel_monitor' %}" class="btn btn-secondary btn-sm">Voltar ao Painel</a>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <p class="mb-1"><strong>Assunto:</strong> {{ monitoria.assunto }}</p>
+                <p class="mb-1"><strong>Data:</strong> {{ monitoria.data|date:"d/m/Y" }} | <strong>Horário:</strong> {{ monitoria.horario_inicio|time:"H:i" }} às {{ monitoria.horario_fim|time:"H:i" }}</p>
+                <p class="mb-0"><strong>Local:</strong> {{ monitoria.local }}</p>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">Alunos Inscritos</h4>
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Aluno (Usuário)</th>
+                                <th>Nome Completo</th>
+                                <th>Data da Inscrição</th>
+                                <th class="text-center" style="width: 150px;">Presente?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inscricao in inscricoes %}
+                            <tr>
+                                <td>{{ inscricao.aluno.username }}</td>
+                                <td>{{ inscricao.aluno.get_full_name|default:"Não informado" }}</td>
+                                <td>{{ inscricao.data_inscricao|date:"d/m/Y H:i" }}</td>
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" name="presentes" value="{{ inscricao.aluno.id }}" id="aluno_{{ inscricao.aluno.id }}" {% if inscricao.presente %}checked{% endif %} style="transform: scale(1.3);">
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">Nenhum aluno inscrito nesta monitoria ainda.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    {% if inscricoes %}
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">Salvar Lista de Presença</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

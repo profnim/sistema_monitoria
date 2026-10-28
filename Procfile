@@ -1,0 +1,1 @@
+web: gunicorn sistema_monitoria.wsgi --log-file -

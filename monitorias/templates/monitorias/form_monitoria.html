@@ -1,0 +1,67 @@
+{% extends 'monitorias/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title mb-4">Cadastrar Nova Monitoria</h3>
+                
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label for="disciplina" class="form-label">Disciplina</label>
+        <input type="text" name="disciplina" class="form-control" value="{{ monitoria.disciplina }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="assunto" class="form-label">Assunto</label>
+        <input type="text" name="assunto" class="form-control" value="{{ monitoria.assunto }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="monitor" class="form-label">Monitor Responsável</label>
+        <select name="monitor" id="monitor" class="form-select" required>
+            <option value="" disabled>Selecione um monitor...</option>
+            {% for m in monitores %}
+                <option value="{{ m.id }}" {% if monitoria.monitor.id == m.id %}selected{% endif %}>
+                    {{ m.get_full_name|default:m.username }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label for="data" class="form-label">Data</label>
+            <input type="date" name="data" class="form-control" value="{{ monitoria.data|date:'Y-m-d' }}" required>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="horario_inicio" class="form-label">Horário de Início</label>
+            <input type="time" name="horario_inicio" class="form-control" value="{{ monitoria.horario_inicio|time:'H:i' }}" required>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="horario_fim" class="form-label">Horário de Término</label>
+            <input type="time" name="horario_fim" class="form-control" value="{{ monitoria.horario_fim|time:'H:i' }}" required>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="local" class="form-label">Local / Sala</label>
+        <input type="text" name="local" class="form-control" value="{{ monitoria.local }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="vagas_limite" class="form-label">Limite de Vagas</label>
+        <input type="number" name="vagas_limite" class="form-control" value="{{ monitoria.vagas_limite }}" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">{% if editando %}Salvar Alterações{% else %}Cadastrar Monitoria{% endif %}</button>
+    <a href="{% url 'painel_admin' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
