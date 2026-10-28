@@ -79,23 +79,19 @@ WSGI_APPLICATION = 'sistema_monitoria.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuração de Banco de Dados Totalmente Blindada
-database_url = os.environ.get('DATABASE_URL')
+database_url = os.environ.get("DATABASE_URL", "").strip()
 
-if database_url and database_url.strip():
-    # Se a variável existir e não estiver vazia, usa o PostgreSQL do Render
-    DATABASES = {
-        'default': dj_database_url.parse(database_url, conn_max_age=600)
-    }
-else:
-    # Caso contrário, usa o SQLite local de forma segura
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+if not database_url:
+    raise ValueError(
+        "DATABASE_URL não foi configurada no ambiente."
+    )
 
+DATABASES = {
+    "default": dj_database_url.parse(
+        database_url,
+        conn_max_age=600
+    )
+}
 
 
 # Password validation
