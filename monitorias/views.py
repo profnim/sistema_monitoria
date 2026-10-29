@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Monitoria, Inscricao
+from .models import Monitoria, Inscricao, HorarioMonitoria
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -28,22 +28,20 @@ def cadastrar_usuario(request):
 
 @login_required
 def lista_monitorias(request):
-    hoje = timezone.localdate() # Pega a data de hoje
+    hoje = timezone.localdate()
     busca = request.GET.get('q', '')
     
-    # Exibe para o aluno apenas monitorias de hoje em diante
-    monitorias = Monitoria.objects.filter(data__gte=hoje)
+    # Exibe monitorias que possuem horários de hoje em diante
+    monitorias = Monitoria.objects.filter(horarios__data__gte=hoje).distinct()
 
-    # Filtro por busca de disciplina ou assunto
     if busca:
         monitorias = monitorias.filter(
             models.Q(disciplina__icontains=busca) | 
             models.Q(assunto__icontains=busca)
         )
 
-    monitorias = monitorias.order_by('data')
+    monitorias = monitorias.order_by('id')
 
-    # Pega os IDs das monitorias em que o usuário atual já está inscrito
     inscricoes_usuario = Inscricao.objects.filter(aluno=request.user).values_list('monitoria_id', flat=True)
     
     context = {
@@ -137,8 +135,7 @@ def painel_admin(request):
     total_usuarios = User.objects.count()
     total_inscricoes = Inscricao.objects.count()
     
-    # O Administrador vê TODAS as monitorias (passadas e futuras) para controle
-    monitorias = Monitoria.objects.all().order_by('-data')
+    monitorias = Monitoria.objects.all().order_by('-id')
     
     context = {
         'total_monitorias': total_monitorias,
@@ -156,25 +153,33 @@ def criar_monitoria(request):
         disciplina = request.POST.get('disciplina')
         assunto = request.POST.get('assunto')
         monitor_id = request.POST.get('monitor')
-        data = request.POST.get('data')
-        horario_inicio = request.POST.get('horario_inicio')
-        horario_fim = request.POST.get('horario_fim')
         local = request.POST.get('local')
         vagas_limite = request.POST.get('vagas_limite')
 
+        datas = request.POST.getlist('datas[]')
+        horarios_inicio = request.POST.getlist('horarios_inicio[]')
+        horarios_fim = request.POST.getlist('horarios_fim[]')
+
         monitor = get_object_or_404(User, pk=monitor_id)
 
-        Monitoria.objects.create(
+        monitoria = Monitoria.objects.create(
             disciplina=disciplina,
             assunto=assunto,
             monitor=monitor,
-            data=data,
-            horario_inicio=horario_inicio,
-            horario_fim=horario_fim,
             local=local,
             vagas_limite=vagas_limite
         )
-        messages.success(request, "Monitoria cadastrada com sucesso!")
+
+        for d, hi, hf in zip(datas, horarios_inicio, horarios_fim):
+            if d and hi and hf:
+                HorarioMonitoria.objects.create(
+                    monitoria=monitoria,
+                    data=d,
+                    horario_inicio=hi,
+                    horario_fim=hf
+                )
+
+        messages.success(request, "Monitoria cadastrada com sucesso com todos os horários!")
         return redirect('painel_admin')
 
     monitores = User.objects.filter(is_active=True)
@@ -190,16 +195,28 @@ def editar_monitoria(request, monitoria_id):
         monitoria.disciplina = request.POST.get('disciplina')
         monitoria.assunto = request.POST.get('assunto')
         monitor_id = request.POST.get('monitor')
-        monitoria.data = request.POST.get('data')
-        monitoria.horario_inicio = request.POST.get('horario_inicio')
-        monitoria.horario_fim = request.POST.get('horario_fim')
         monitoria.local = request.POST.get('local')
         monitoria.vagas_limite = request.POST.get('vagas_limite')
 
         monitoria.monitor = get_object_or_404(User, pk=monitor_id)
         monitoria.save()
+
+        datas = request.POST.getlist('datas[]')
+        horarios_inicio = request.POST.getlist('horarios_inicio[]')
+        horarios_fim = request.POST.getlist('horarios_fim[]')
+
+        monitoria.horarios.all().delete()
+
+        for d, hi, hf in zip(datas, horarios_inicio, horarios_fim):
+            if d and hi and hf:
+                HorarioMonitoria.objects.create(
+                    monitoria=monitoria,
+                    data=d,
+                    horario_inicio=hi,
+                    horario_fim=hf
+                )
         
-        messages.success(request, "Monitoria atualizada com sucesso!")
+        messages.success(request, "Monitoria e horários atualizados com sucesso!")
         return redirect('painel_admin')
 
     monitores = User.objects.filter(is_active=True)

@@ -32,20 +32,65 @@
         </select>
     </div>
 
-    <div class="row">
-        <div class="col-md-4 mb-3">
-            <label for="data" class="form-label">Data</label>
-            <input type="date" name="data" class="form-control" value="{{ monitoria.data|date:'Y-m-d' }}" required>
-        </div>
-        <div class="col-md-4 mb-3">
-            <label for="horario_inicio" class="form-label">Horário de Início</label>
-            <input type="time" name="horario_inicio" class="form-control" value="{{ monitoria.horario_inicio|time:'H:i' }}" required>
-        </div>
-        <div class="col-md-4 mb-3">
-            <label for="horario_fim" class="form-label">Horário de Término</label>
-            <input type="time" name="horario_fim" class="form-control" value="{{ monitoria.horario_fim|time:'H:i' }}" required>
-        </div>
+    <!-- SEÇÃO DE DATAS E HORÁRIOS MÚLTIPLOS (LADO A LADO) -->
+    <hr class="my-4">
+    <h5 class="mb-3 text-secondary" style="font-size: 1rem;">Datas e Horários da Monitoria</h5>
+    
+    <div id="container-horarios">
+        {% if monitoria and monitoria.horarios.all %}
+            {% for h in monitoria.horarios.all %}
+                <div class="row align-items-end mb-3 horario-row">
+                    <div class="col-md-4">
+                        <label class="form-label">Data</label>
+                        <input type="date" name="datas[]" class="form-control" value="{{ h.data|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Início</label>
+                        <input type="time" name="horarios_inicio[]" class="form-control" value="{{ h.horario_inicio|time:'H:i' }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Término</label>
+                        <input type="time" name="horarios_fim[]" class="form-control" value="{{ h.horario_fim|time:'H:i' }}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-outline-danger w-100 btn-remover" title="Remover horário">
+                            Remover
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- Linha padrão vazia para quando estiver cadastrando uma nova monitoria -->
+            <div class="row align-items-end mb-3 horario-row">
+                <div class="col-md-4">
+                    <label class="form-label">Data</label>
+                    <input type="date" name="datas[]" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Início</label>
+                    <input type="time" name="horarios_inicio[]" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Término</label>
+                    <input type="time" name="horarios_fim[]" class="form-control" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger w-100 btn-remover" title="Remover horário">
+                        Remover
+                    </button>
+                </div>
+            </div>
+        {% endif %}
     </div>
+
+    <!-- Botão para adicionar mais linhas -->
+    <div class="mb-4">
+        <button type="button" id="btn-adicionar-horario" class="btn btn-outline-secondary btn-sm">
+            + Adicionar Outra Data/Horário
+        </button>
+    </div>
+    <hr class="my-4">
+    <!-- FIM DA SEÇÃO DE HORÁRIOS -->
 
     <div class="mb-3">
         <label for="local" class="form-label">Local / Sala</label>
@@ -64,4 +109,37 @@
         </div>
     </div>
 </div>
+
+<!-- Script JavaScript para gerenciar a adição e remoção dinâmica das linhas -->
+<script>
+    document.getElementById('btn-adicionar-horario').addEventListener('click', function() {
+        const container = document.getElementById('container-horarios');
+        const primeiraLinha = container.querySelector('.horario-row');
+        const novaLinha = primeiraLinha.cloneNode(true);
+        
+        // Limpa os valores preenchidos na linha copiada
+        novaLinha.querySelectorAll('input').forEach(input => input.value = '');
+        
+        // Configura o botão de remover da nova linha
+        novaLinha.querySelector('.btn-remover').addEventListener('click', function() {
+            if (container.querySelectorAll('.horario-row').length > 1) {
+                novaLinha.remove();
+            } else {
+                alert('Você precisa manter pelo menos um horário.');
+            }
+        });
+
+        container.appendChild(novaLinha);
+    });
+
+    // Configura o botão de remover da primeira linha original
+    document.querySelector('.btn-remover').addEventListener('click', function() {
+        const container = document.getElementById('container-horarios');
+        if (container.querySelectorAll('.horario-row').length > 1) {
+            this.closest('.horario-row').remove();
+        } else {
+            alert('Você precisa manter pelo menos um horário.');
+        }
+    });
+</script>
 {% endblock %}

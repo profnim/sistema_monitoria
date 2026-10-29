@@ -43,7 +43,16 @@
                             <td><strong>{{ m.disciplina }}</strong></td>
                             <td>{{ m.assunto }}</td>
                             <td>{{ m.monitor.get_full_name|default:m.monitor.username }}</td>
-                            <td>{{ m.data|date:"d/m/Y" }} às {{ m.horario_inicio|time:"H:i" }}</td>
+                            <td>
+                                <!-- Loop para exibir todas as datas e horários desta monitoria -->
+                                {% for h in m.horarios.all %}
+                                    <div class="small">
+                                        <strong>{{ h.data|date:"d/m/Y" }}</strong>: {{ h.horario_inicio|time:"H:i" }} às {{ h.horario_fim|time:"H:i" }}
+                                    </div>
+                                {% empty %}
+                                    <span class="text-muted">Nenhum horário definido</span>
+                                {% endfor %}
+                            </td>
                             <td>{{ m.local }}</td>
                             <td>{{ m.vagas_disponiveis }} / {{ m.vagas_limite }}</td>
                             <td class="text-center">

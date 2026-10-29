@@ -23,12 +23,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["SECRET_KEY"]
+#SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = os.environ.get("SECRET_KEY", "-_0%1hr*efp^2&-wky+log#j94_=#suhur=#$@jkmmcv_5qku=")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['sistema-monitoria-ldui.onrender.com']
+#Apenas pro Render
+#ALLOWED_HOSTS = ['sistema-monitoria-ldui.onrender.com']
+
+DEBUG = True
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'sistema-monitoria-ldui.onrender.com']
 
 
 # Application definition
@@ -82,16 +87,20 @@ WSGI_APPLICATION = 'sistema_monitoria.wsgi.application'
 database_url = os.environ.get("DATABASE_URL", "").strip()
 
 if not database_url:
-    raise ValueError(
-        "DATABASE_URL não foi configurada no ambiente."
-    )
-
-DATABASES = {
-    "default": dj_database_url.parse(
-        database_url,
-        conn_max_age=600
-    )
-}
+    # Banco local SQLite para testes no seu PC
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            database_url,
+            conn_max_age=600
+        )
+    }
 
 
 # Password validation
