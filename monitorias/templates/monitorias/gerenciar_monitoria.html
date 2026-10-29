@@ -8,11 +8,20 @@
             <a href="{% url 'painel_monitor' %}" class="btn btn-secondary btn-sm">Voltar ao Painel</a>
         </div>
 
-        <div class="card shadow-sm mb-4">
+       <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <p class="mb-1"><strong>Assunto:</strong> {{ monitoria.assunto }}</p>
-                <p class="mb-1"><strong>Data:</strong> {{ monitoria.data|date:"d/m/Y" }} | <strong>Horário:</strong> {{ monitoria.horario_inicio|time:"H:i" }} às {{ monitoria.horario_fim|time:"H:i" }}</p>
-                <p class="mb-0"><strong>Local:</strong> {{ monitoria.local }}</p>
+                <div class="mb-1">
+                    <strong>Horários:</strong>
+                    <ul class="mb-0 ps-3">
+                        {% for h in monitoria.horarios.all %}
+                            <li>{{ h.data|date:"d/m/Y" }} das {{ h.horario_inicio|time:"H:i" }} às {{ h.horario_fim|time:"H:i" }}</li>
+                        {% empty %}
+                            <span class="text-muted">Nenhum horário cadastrado</span>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <p class="mb-0 mt-2"><strong>Local:</strong> {{ monitoria.local }}</p>
             </div>
         </div>
 
